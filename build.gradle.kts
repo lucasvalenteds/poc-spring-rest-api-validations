@@ -2,6 +2,7 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
     java
+    application
 }
 
 repositories {
@@ -30,6 +31,10 @@ dependencies {
 configure<JavaPluginConvention> {
     sourceCompatibility = JavaVersion.VERSION_11
     targetCompatibility = JavaVersion.VERSION_11
+}
+
+configure<ApplicationPluginConvention> {
+    mainClassName = "com.example.spring.Main"
 }
 
 tasks.withType<Test> {
