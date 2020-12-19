@@ -52,4 +52,18 @@ public final class AccountController {
             .map(ResponseEntity::ok)
             .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
     }
+
+    @PostMapping("/{id}/draw")
+    public Mono<ResponseEntity<AccountBalance>> draw(@PathVariable("id") String uuid,
+                                                     @RequestBody AccountBalanceAmount amount) {
+        return Mono.fromCallable(() -> repository.findById(UUID.fromString(uuid)))
+            .flatMap(optional -> optional.map(Mono::just).orElseGet(Mono::empty))
+            .flatMap(account -> {
+                account.setBalance(account.getBalance().subtract(amount.getAmount()));
+                return Mono.fromCallable(() -> repository.save(account));
+            })
+            .map(account -> new AccountBalance(account.getBalance()))
+            .map(ResponseEntity::ok)
+            .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
+    }
 }

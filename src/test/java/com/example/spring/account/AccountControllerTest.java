@@ -75,4 +75,18 @@ class AccountControllerTest {
             .expectBody()
             .jsonPath("$.balance").isEqualTo(account.getBalance().add(amount));
     }
+
+    @Test
+    void testDrawingMoney() {
+        BigDecimal amount = BigDecimal.valueOf(15.37);
+
+        client.post()
+            .uri("/accounts/{accountId}/draw", Map.of("accountId", account.getId().toString()))
+            .body(BodyInserters.fromValue(new AccountBalanceAmount(amount)))
+            .exchange()
+            .expectStatus().isOk()
+            .expectHeader().contentType(MediaType.APPLICATION_JSON)
+            .expectBody()
+            .jsonPath("$.balance").isEqualTo(account.getBalance().subtract(amount));
+    }
 }
