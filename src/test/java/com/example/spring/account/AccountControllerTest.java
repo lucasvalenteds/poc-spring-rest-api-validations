@@ -9,6 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.web.reactive.function.BodyInserters;
 
 import java.math.BigDecimal;
 import java.util.Map;
@@ -24,12 +25,17 @@ class AccountControllerTest {
 
     private WebTestClient client;
 
+    private Account account;
+
     @BeforeEach
     void beforeEach(ApplicationContext context) {
         repository = context.getBean(AccountRepository.class);
         client = WebTestClient.bindToApplicationContext(context).build();
 
         repository.deleteAll();
+
+        account = repository.save(new Account(BigDecimal.valueOf(125.49)));
+        assertNotNull(account);
     }
 
     @Test
@@ -46,9 +52,6 @@ class AccountControllerTest {
 
     @Test
     void testFindingAccountById() {
-        Account account = repository.save(new Account(BigDecimal.valueOf(1.11)));
-        assertNotNull(account);
-
         client.get()
             .uri("/accounts/{accountId}", Map.of("accountId", account.getId().toString()))
             .exchange()
@@ -56,6 +59,20 @@ class AccountControllerTest {
             .expectHeader().contentType(MediaType.APPLICATION_JSON)
             .expectBody()
             .jsonPath("$.id").isEqualTo(account.getId().toString())
-            .jsonPath("$.balance").isEqualTo(account.getBalance().doubleValue());
+            .jsonPath("$.balance").isEqualTo(account.getBalance());
+    }
+
+    @Test
+    void testDepositingMoney() {
+        BigDecimal amount = BigDecimal.valueOf(15.37);
+
+        client.post()
+            .uri("/accounts/{accountId}/deposit", Map.of("accountId", account.getId().toString()))
+            .body(BodyInserters.fromValue(new AccountBalanceAmount(amount)))
+            .exchange()
+            .expectStatus().isOk()
+            .expectHeader().contentType(MediaType.APPLICATION_JSON)
+            .expectBody()
+            .jsonPath("$.balance").isEqualTo(account.getBalance().add(amount));
     }
 }
