@@ -25,6 +25,11 @@ public final class Account {
         this.balance = balance;
     }
 
+    public Account(UUID id, BigDecimal balance) {
+        this.id = id;
+        this.balance = balance;
+    }
+
     public UUID getId() {
         return id;
     }
