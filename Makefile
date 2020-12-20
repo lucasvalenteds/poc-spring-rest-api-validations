@@ -64,7 +64,7 @@ test-draw:
 #   "errors": [
 #     {
 #       "field": "locked",
-#       "message": "Account.Operation.Money.isLocked",
+#       "message": "Account.State.isLocked",
 #       "metadata": []
 #     },
 #     {

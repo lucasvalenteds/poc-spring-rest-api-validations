@@ -22,7 +22,7 @@ class AccountIsNotLockedTest {
 
         assertTrue(error.isPresent());
         assertEquals("locked", error.get().getField());
-        assertEquals("Account.Operation.Money.isLocked", error.get().getMessage());
+        assertEquals("Account.State.isLocked", error.get().getMessage());
         assertEquals(0, error.get().getMetadata().size());
     }
 

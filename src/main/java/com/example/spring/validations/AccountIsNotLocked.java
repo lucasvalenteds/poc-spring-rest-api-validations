@@ -20,7 +20,7 @@ public final class AccountIsNotLocked implements ValidationRule {
         if (account.getLocked()) {
             return Optional.of(new ValidationError(
                 "locked",
-                "Account.Operation.Money.isLocked",
+                "Account.State.isLocked",
                 List.of()
             ));
         }
