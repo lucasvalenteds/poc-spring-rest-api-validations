@@ -26,6 +26,7 @@ dependencies {
     implementation("org.hibernate", "hibernate-core", properties["version.hibernate"].toString())
     implementation("org.hibernate", "hibernate-entitymanager", properties["version.hibernate"].toString())
     testImplementation("org.hibernate", "hibernate-testing", properties["version.hibernate"].toString())
+    runtime("com.h2database", "h2", properties["version.h2"].toString())
     testImplementation("com.h2database", "h2", properties["version.h2"].toString())
 
     implementation("io.projectreactor", "reactor-core", properties["version.reactor"].toString())
