@@ -89,4 +89,25 @@ class AccountControllerTest {
             .expectBody()
             .jsonPath("$.balance").isEqualTo(account.getBalance().subtract(amount));
     }
+
+    @Test
+    void testCannotDraw() {
+        Account accountLockedWithBalanceZero = repository.save(new Account(BigDecimal.ZERO, true));
+
+        client.get()
+            .uri("/accounts/{accountId}/draw/validations", Map.ofEntries(
+                Map.entry("accountId", accountLockedWithBalanceZero.getId().toString())
+            ))
+            .exchange()
+            .expectStatus().isOk()
+            .expectHeader().contentType(MediaType.APPLICATION_JSON)
+            .expectBody()
+            .jsonPath("$.errors").isArray()
+            .jsonPath("$.errors[0].field").exists()
+            .jsonPath("$.errors[0].message").exists()
+            .jsonPath("$.errors[0].metadata").isArray()
+            .jsonPath("$.errors[1].field").exists()
+            .jsonPath("$.errors[1].message").exists()
+            .jsonPath("$.errors[1].metadata").isArray();
+    }
 }

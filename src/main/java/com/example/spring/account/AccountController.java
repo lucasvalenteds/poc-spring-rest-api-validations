@@ -1,5 +1,9 @@
 package com.example.spring.account;
 
+import com.example.spring.account.validations.AccountHasEnoughBalance;
+import com.example.spring.account.validations.AccountIsNotLocked;
+import com.example.spring.validation.ValidationErrors;
+import com.example.spring.validation.Validations;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -59,6 +64,20 @@ public final class AccountController {
             .map(account -> new Account(account.getId(), account.getBalance().subtract(amount.getAmount())))
             .flatMap(account -> Mono.fromCallable(() -> repository.save(account)))
             .map(account -> new AccountBalance(account.getBalance()))
+            .map(ResponseEntity::ok)
+            .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
+    }
+
+    @GetMapping("/{id}/draw/validations")
+    public Mono<ResponseEntity<ValidationErrors>> validateDrawOperation(@PathVariable("id") String uuid) {
+        Mono<Account> accountToDrawFrom = Mono.fromCallable(() -> repository.findById(UUID.fromString(uuid)))
+            .flatMap(it -> it.map(Mono::just).orElseGet(Mono::empty));
+
+        return Mono.from(accountToDrawFrom)
+            .flatMap(account -> Validations.validate(List.of(
+                new AccountIsNotLocked(account),
+                new AccountHasEnoughBalance(account)
+            )))
             .map(ResponseEntity::ok)
             .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
     }
