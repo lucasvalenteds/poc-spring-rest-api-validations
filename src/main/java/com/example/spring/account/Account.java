@@ -18,11 +18,19 @@ public final class Account {
     @Column
     private BigDecimal balance;
 
+    @Column
+    private Boolean isLocked;
+
     public Account() {
     }
 
     public Account(BigDecimal balance) {
         this.balance = balance;
+    }
+
+    public Account(BigDecimal balance, Boolean isLocked) {
+        this.balance = balance;
+        this.isLocked = isLocked;
     }
 
     public Account(UUID id, BigDecimal balance) {
@@ -44,5 +52,13 @@ public final class Account {
 
     public void setBalance(BigDecimal balance) {
         this.balance = balance;
+    }
+
+    public Boolean getLocked() {
+        return isLocked;
+    }
+
+    public void setLocked(Boolean locked) {
+        isLocked = locked;
     }
 }
