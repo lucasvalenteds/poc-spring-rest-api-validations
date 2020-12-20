@@ -4,6 +4,7 @@ import com.example.spring.account.AccountRepository;
 import com.example.spring.account.AccountService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -37,17 +38,21 @@ public class Main {
     private static final Logger logger = LogManager.getLogger(Main.class);
 
     public static void main(String[] args) {
-        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(Main.class);
-
-        Environment environment = context.getEnvironment();
-
-        HttpServer.create()
-            .port(environment.getRequiredProperty("server.port", Integer.class))
-            .handle(new ReactorHttpHandlerAdapter(WebHttpHandlerBuilder.applicationContext(context).build()))
+        new AnnotationConfigApplicationContext(Main.class)
+            .getBean(HttpServer.class)
             .bindUntilJavaShutdown(
                 Duration.ofMillis(1000),
                 server -> logger.info("Server running on port {}", server.port())
             );
+    }
+
+    @Bean
+    public HttpServer httpServer(ApplicationContext context) {
+        Environment environment = context.getEnvironment();
+
+        return HttpServer.create()
+            .port(environment.getRequiredProperty("server.port", Integer.class))
+            .handle(new ReactorHttpHandlerAdapter(WebHttpHandlerBuilder.applicationContext(context).build()));
     }
 
     @Bean
