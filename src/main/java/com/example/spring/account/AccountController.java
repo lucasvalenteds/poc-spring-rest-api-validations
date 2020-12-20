@@ -76,7 +76,11 @@ public final class AccountController {
                                                         @RequestBody AccountBalanceAmount amount) {
         return Mono.fromCallable(() -> repository.findById(UUID.fromString(uuid)))
             .flatMap(optional -> optional.map(Mono::just).orElseGet(Mono::empty))
-            .map(account -> new Account(account.getId(), account.getBalance().add(amount.getAmount())))
+            .map(account -> new Account(
+                account.getId(),
+                account.getBalance().add(amount.getAmount()),
+                account.getLocked()
+            ))
             .flatMap(account -> Mono.fromCallable(() -> repository.save(account)))
             .map(account -> new AccountBalance(account.getBalance()))
             .map(ResponseEntity::ok)
@@ -88,7 +92,11 @@ public final class AccountController {
                                                      @RequestBody AccountBalanceAmount amount) {
         return Mono.fromCallable(() -> repository.findById(UUID.fromString(uuid)))
             .flatMap(optional -> optional.map(Mono::just).orElseGet(Mono::empty))
-            .map(account -> new Account(account.getId(), account.getBalance().subtract(amount.getAmount())))
+            .map(account -> new Account(
+                account.getId(),
+                account.getBalance().subtract(amount.getAmount()),
+                account.getLocked()
+            ))
             .flatMap(account -> Mono.fromCallable(() -> repository.save(account)))
             .map(account -> new AccountBalance(account.getBalance()))
             .map(ResponseEntity::ok)

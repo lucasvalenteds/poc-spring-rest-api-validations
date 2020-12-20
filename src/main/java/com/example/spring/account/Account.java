@@ -33,9 +33,10 @@ public final class Account {
         this.isLocked = isLocked;
     }
 
-    public Account(UUID id, BigDecimal balance) {
+    public Account(UUID id, BigDecimal balance, Boolean isLocked) {
         this.id = id;
         this.balance = balance;
+        this.isLocked = isLocked;
     }
 
     public UUID getId() {
