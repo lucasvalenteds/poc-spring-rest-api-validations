@@ -17,56 +17,53 @@ import reactor.core.publisher.Mono;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping(path = "/accounts", produces = MediaType.APPLICATION_JSON_VALUE)
 public final class AccountController {
 
-    private final AccountRepository repository;
+    private final AccountService service;
 
-    public AccountController(AccountRepository repository) {
-        this.repository = repository;
+    public AccountController(AccountService service) {
+        this.service = service;
     }
 
     @PostMapping
     public Mono<ResponseEntity<Account>> create() {
-        return Mono.fromCallable(() -> repository.save(new Account(BigDecimal.ZERO, true)))
+        return service.save(new Account(BigDecimal.ZERO, true))
             .map(account -> ResponseEntity.ok().body(account));
     }
 
     @GetMapping("/{id}")
     public Mono<ResponseEntity<Account>> findById(@PathVariable("id") String uuid) {
-        return Mono.fromCallable(() -> UUID.fromString(uuid))
-            .flatMap(id -> Mono.fromCallable(() ->
-                repository.findById(id)
-                    .map(ResponseEntity::ok)
-                    .orElse(ResponseEntity.notFound().build())
-            ));
+        return service.createUUID(uuid)
+            .flatMap(service::findById)
+            .map(ResponseEntity::ok)
+            .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
     }
 
     @PatchMapping("/{id}/lock")
     public Mono<ResponseEntity<Object>> lock(@PathVariable("id") String uuid) {
-        return Mono.fromCallable(() -> repository.findById(UUID.fromString(uuid)))
-            .flatMap(account -> account.map(Mono::just).orElseGet(Mono::empty))
+        return service.createUUID(uuid)
+            .flatMap(service::findById)
             .map(account -> {
                 account.setLocked(true);
                 return account;
             })
-            .flatMap(account -> Mono.fromCallable(() -> repository.save(account)))
+            .flatMap(service::save)
             .map(account -> ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).build())
             .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
     }
 
     @PatchMapping("/{id}/unlock")
     public Mono<ResponseEntity<Object>> unlock(@PathVariable("id") String uuid) {
-        return Mono.fromCallable(() -> repository.findById(UUID.fromString(uuid)))
-            .flatMap(account -> account.map(Mono::just).orElseGet(Mono::empty))
+        return service.createUUID(uuid)
+            .flatMap(service::findById)
             .map(account -> {
                 account.setLocked(false);
                 return account;
             })
-            .flatMap(account -> Mono.fromCallable(() -> repository.save(account)))
+            .flatMap(service::save)
             .map(account -> ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).build())
             .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
     }
@@ -74,14 +71,14 @@ public final class AccountController {
     @PostMapping("/{id}/deposit")
     public Mono<ResponseEntity<AccountBalance>> deposit(@PathVariable("id") String uuid,
                                                         @RequestBody AccountBalanceAmount amount) {
-        return Mono.fromCallable(() -> repository.findById(UUID.fromString(uuid)))
-            .flatMap(optional -> optional.map(Mono::just).orElseGet(Mono::empty))
+        return service.createUUID(uuid)
+            .flatMap(service::findById)
             .map(account -> new Account(
                 account.getId(),
                 account.getBalance().add(amount.getAmount()),
                 account.getLocked()
             ))
-            .flatMap(account -> Mono.fromCallable(() -> repository.save(account)))
+            .flatMap(service::save)
             .map(account -> new AccountBalance(account.getBalance()))
             .map(ResponseEntity::ok)
             .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
@@ -90,14 +87,14 @@ public final class AccountController {
     @PostMapping("/{id}/draw")
     public Mono<ResponseEntity<AccountBalance>> draw(@PathVariable("id") String uuid,
                                                      @RequestBody AccountBalanceAmount amount) {
-        return Mono.fromCallable(() -> repository.findById(UUID.fromString(uuid)))
-            .flatMap(optional -> optional.map(Mono::just).orElseGet(Mono::empty))
+        return service.createUUID(uuid)
+            .flatMap(service::findById)
             .map(account -> new Account(
                 account.getId(),
                 account.getBalance().subtract(amount.getAmount()),
                 account.getLocked()
             ))
-            .flatMap(account -> Mono.fromCallable(() -> repository.save(account)))
+            .flatMap(service::save)
             .map(account -> new AccountBalance(account.getBalance()))
             .map(ResponseEntity::ok)
             .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
@@ -105,10 +102,8 @@ public final class AccountController {
 
     @GetMapping("/{id}/draw/validations")
     public Mono<ResponseEntity<ValidationErrors>> validateDrawOperation(@PathVariable("id") String uuid) {
-        Mono<Account> accountToDrawFrom = Mono.fromCallable(() -> repository.findById(UUID.fromString(uuid)))
-            .flatMap(it -> it.map(Mono::just).orElseGet(Mono::empty));
-
-        return Mono.from(accountToDrawFrom)
+        return service.createUUID(uuid)
+            .flatMap(service::findById)
             .flatMap(account -> Validations.validate(List.of(
                 new AccountIsNotLocked(account),
                 new AccountHasEnoughBalance(account)

@@ -1,5 +1,7 @@
 package com.example.spring;
 
+import com.example.spring.account.AccountRepository;
+import com.example.spring.account.AccountService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -76,5 +78,10 @@ public class Main {
         txManager.setEntityManagerFactory(entityManagerFactory);
 
         return txManager;
+    }
+
+    @Bean
+    public AccountService accountService(AccountRepository repository) {
+        return new AccountService(repository);
     }
 }

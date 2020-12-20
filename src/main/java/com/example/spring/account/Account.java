@@ -24,10 +24,6 @@ public final class Account {
     public Account() {
     }
 
-    public Account(BigDecimal balance) {
-        this.balance = balance;
-    }
-
     public Account(BigDecimal balance, Boolean isLocked) {
         this.balance = balance;
         this.isLocked = isLocked;
