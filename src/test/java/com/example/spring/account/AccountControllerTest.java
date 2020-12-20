@@ -50,7 +50,8 @@ class AccountControllerTest {
             .expectHeader().contentType(MediaType.APPLICATION_JSON)
             .expectBody()
             .jsonPath("$.id").value(id -> assertNotNull(UUID.fromString(id.toString())))
-            .jsonPath("$.balance").isEqualTo(0L);
+            .jsonPath("$.balance").isEqualTo(0L)
+            .jsonPath("$.locked").isEqualTo(true);
     }
 
     @Test
