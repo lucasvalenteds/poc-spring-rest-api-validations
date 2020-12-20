@@ -30,7 +30,7 @@ public final class AccountController {
 
     @PostMapping
     public Mono<ResponseEntity<Account>> create() {
-        return Mono.fromCallable(() -> repository.save(new Account(BigDecimal.ZERO)))
+        return Mono.fromCallable(() -> repository.save(new Account(BigDecimal.ZERO, true)))
             .map(account -> ResponseEntity.ok().body(account));
     }
 
