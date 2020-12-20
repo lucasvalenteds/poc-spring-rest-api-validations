@@ -62,7 +62,8 @@ class AccountControllerTest {
             .expectHeader().contentType(MediaType.APPLICATION_JSON)
             .expectBody()
             .jsonPath("$.id").isEqualTo(account.getId().toString())
-            .jsonPath("$.balance").isEqualTo(account.getBalance());
+            .jsonPath("$.balance").isEqualTo(account.getBalance())
+            .jsonPath("$.locked").isEqualTo(account.getLocked());
     }
 
     @Test
