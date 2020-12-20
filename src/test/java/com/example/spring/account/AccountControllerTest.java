@@ -13,9 +13,12 @@ import org.springframework.web.reactive.function.BodyInserters;
 
 import java.math.BigDecimal;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = Main.class)
@@ -34,7 +37,7 @@ class AccountControllerTest {
 
         repository.deleteAll();
 
-        account = repository.save(new Account(BigDecimal.valueOf(125.49)));
+        account = repository.save(new Account(BigDecimal.valueOf(125.49), false));
         assertNotNull(account);
     }
 
@@ -60,6 +63,36 @@ class AccountControllerTest {
             .expectBody()
             .jsonPath("$.id").isEqualTo(account.getId().toString())
             .jsonPath("$.balance").isEqualTo(account.getBalance());
+    }
+
+    @Test
+    void testLockingAccount() {
+        Account accountUnlocked = repository.save(new Account(BigDecimal.ZERO, false));
+
+        client.patch()
+            .uri("/accounts/{accountId}/lock", Map.of("accountId", accountUnlocked.getId().toString()))
+            .exchange()
+            .expectStatus().isOk()
+            .expectHeader().contentType(MediaType.APPLICATION_JSON);
+
+        Optional<Account> accountLocked = repository.findById(accountUnlocked.getId());
+        assertTrue(accountLocked.isPresent());
+        assertTrue(accountLocked.get().getLocked());
+    }
+
+    @Test
+    void testUnlockingAccount() {
+        Account accountLocked = repository.save(new Account(BigDecimal.ZERO, true));
+
+        client.patch()
+            .uri("/accounts/{accountId}/unlock", Map.of("accountId", accountLocked.getId().toString()))
+            .exchange()
+            .expectStatus().isOk()
+            .expectHeader().contentType(MediaType.APPLICATION_JSON);
+
+        Optional<Account> accountUnlocked = repository.findById(accountLocked.getId());
+        assertTrue(accountUnlocked.isPresent());
+        assertFalse(accountUnlocked.get().getLocked());
     }
 
     @Test

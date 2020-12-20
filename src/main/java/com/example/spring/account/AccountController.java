@@ -7,6 +7,7 @@ import com.example.spring.validation.Validations;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -42,6 +43,32 @@ public final class AccountController {
                     .map(ResponseEntity::ok)
                     .orElse(ResponseEntity.notFound().build())
             ));
+    }
+
+    @PatchMapping("/{id}/lock")
+    public Mono<ResponseEntity<Object>> lock(@PathVariable("id") String uuid) {
+        return Mono.fromCallable(() -> repository.findById(UUID.fromString(uuid)))
+            .flatMap(account -> account.map(Mono::just).orElseGet(Mono::empty))
+            .map(account -> {
+                account.setLocked(true);
+                return account;
+            })
+            .flatMap(account -> Mono.fromCallable(() -> repository.save(account)))
+            .map(account -> ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).build())
+            .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
+    }
+
+    @PatchMapping("/{id}/unlock")
+    public Mono<ResponseEntity<Object>> unlock(@PathVariable("id") String uuid) {
+        return Mono.fromCallable(() -> repository.findById(UUID.fromString(uuid)))
+            .flatMap(account -> account.map(Mono::just).orElseGet(Mono::empty))
+            .map(account -> {
+                account.setLocked(false);
+                return account;
+            })
+            .flatMap(account -> Mono.fromCallable(() -> repository.save(account)))
+            .map(account -> ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).build())
+            .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
     }
 
     @PostMapping("/{id}/deposit")
