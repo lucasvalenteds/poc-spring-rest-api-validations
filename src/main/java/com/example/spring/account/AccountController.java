@@ -1,7 +1,7 @@
 package com.example.spring.account;
 
-import com.example.spring.account.validations.AccountHasEnoughBalance;
-import com.example.spring.account.validations.AccountIsNotLocked;
+import com.example.spring.validations.AccountHasEnoughBalance;
+import com.example.spring.validations.AccountIsNotLocked;
 import com.example.spring.validation.ValidationErrors;
 import com.example.spring.validation.Validations;
 import org.springframework.http.MediaType;

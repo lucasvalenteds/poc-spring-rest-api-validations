@@ -1,4 +1,4 @@
-package com.example.spring.account.validations;
+package com.example.spring.validations;
 
 import com.example.spring.account.Account;
 import com.example.spring.validation.ValidationError;
