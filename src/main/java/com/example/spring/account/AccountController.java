@@ -31,7 +31,7 @@ public final class AccountController {
     @PostMapping
     public Mono<ResponseEntity<Account>> create() {
         return service.save(new Account(BigDecimal.ZERO, true))
-            .map(account -> ResponseEntity.ok().body(account));
+            .map(ResponseEntity::ok);
     }
 
     @GetMapping("/{id}")
@@ -46,10 +46,11 @@ public final class AccountController {
     public Mono<ResponseEntity<Object>> lock(@PathVariable("id") String uuid) {
         return service.createUUID(uuid)
             .flatMap(service::findById)
-            .map(account -> {
-                account.setLocked(true);
-                return account;
-            })
+            .map(account -> new Account(
+                account.getId(),
+                account.getBalance(),
+                true
+            ))
             .flatMap(service::save)
             .map(account -> ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).build())
             .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
@@ -59,10 +60,11 @@ public final class AccountController {
     public Mono<ResponseEntity<Object>> unlock(@PathVariable("id") String uuid) {
         return service.createUUID(uuid)
             .flatMap(service::findById)
-            .map(account -> {
-                account.setLocked(false);
-                return account;
-            })
+            .map(account -> new Account(
+                account.getId(),
+                account.getBalance(),
+                false
+            ))
             .flatMap(service::save)
             .map(account -> ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).build())
             .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
