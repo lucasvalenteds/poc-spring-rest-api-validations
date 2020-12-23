@@ -3,7 +3,7 @@ package com.example.spring.account;
 import com.example.spring.validations.AccountHasEnoughBalance;
 import com.example.spring.validations.AccountIsNotLocked;
 import com.example.spring.validation.ValidationErrors;
-import com.example.spring.validation.Validations;
+import com.example.spring.validation.Validation;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -104,7 +104,7 @@ public final class AccountController {
     public Mono<ResponseEntity<ValidationErrors>> validateDrawOperation(@PathVariable("id") String uuid) {
         return service.createUUID(uuid)
             .flatMap(service::findById)
-            .flatMap(account -> Validations.validate(List.of(
+            .flatMap(account -> Validation.validateAll(List.of(
                 new AccountIsNotLocked(account),
                 new AccountHasEnoughBalance(account)
             )))

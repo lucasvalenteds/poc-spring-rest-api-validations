@@ -6,12 +6,12 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 import java.util.Optional;
 
-public final class Validations {
+public final class Validation {
 
-    private Validations() {
+    private Validation() {
     }
 
-    public static Mono<ValidationErrors> validate(List<ValidationRule> rules) {
+    public static Mono<ValidationErrors> validateAll(List<ValidationRule> rules) {
         return Flux.fromIterable(rules)
             .map(ValidationRule::validate)
             .filter(Optional::isPresent)
