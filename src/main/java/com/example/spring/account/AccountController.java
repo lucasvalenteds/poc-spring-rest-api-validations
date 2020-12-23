@@ -103,7 +103,7 @@ public final class AccountController {
     }
 
     @GetMapping("/{id}/draw/validations")
-    public Mono<ResponseEntity<ValidationErrors>> validateDrawOperation(@PathVariable("id") String uuid) {
+    public Mono<ResponseEntity<ValidationErrors>> getDrawValidations(@PathVariable("id") String uuid) {
         return service.createUUID(uuid)
             .flatMap(service::findById)
             .flatMap(account -> Validation.validateAll(List.of(
